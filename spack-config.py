@@ -3,6 +3,7 @@ import os
 from datetime import date
 import calendar
 import subprocess
+from shutil import copyfile
 
 def parse_env_variables():
     with open('spack-config.yaml', 'r') as cfile:
@@ -12,7 +13,7 @@ def setup_env_variables():
     config = parse_env_variables()
     if 'FCC_VERSION' not in config:
         config['FCC_VERSION'] = 'stable'
-    config['CURRENT_DIR'] = os.getcwd()
+    config['CURRENT_DIR'] = os.path.dirname(os.path.realpath(__file__))
 
     TOOLSPATH = '/cvmfs/fcc.cern.ch/sw/0.8.3/tools/'
     command = 'python {}/hsf_get_platform.py --compiler {} --buildtype '\
@@ -60,7 +61,12 @@ def source_spack():
     return
 
 def configure_compiler():
-    return
+    config = setup_env_variables()
+    src = '{}/config/compiler-{}-{}.yaml'.format(config['CURRENT_DIR'],\
+            config['OS'], config['COMPILER'])
+    dst = '{}/linux/compilers.yaml'.format(config['SPACK_CONFIG'])
+    copyfile(src, dst)
 
 if __name__ == "__main__":
     clone_spack_dependencies()
+    configure_compiler()
