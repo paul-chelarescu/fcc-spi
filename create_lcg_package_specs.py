@@ -3,6 +3,7 @@ import yaml
 import argparse
 import re
 import glob
+import sys
 
 
 OS_SHORT_TO_LONG = {"slc6":"scientificcernslc6", "centos7":"centos7", "ubuntu1604":"ubuntu1604"}
@@ -204,15 +205,14 @@ def update_blacklist(filename):
         blacklist.extend(data.keys())
 
 
-def main():
+def main(main_args):
     parser = argparse.ArgumentParser("LCG packages spec creator", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('release_path', type=str, help='LCG release path (searched for LCG_*.txt files)')
     parser.add_argument('--limited', type=str, dest='limited', nargs='*', help='List of packages to consider')
     parser.add_argument('--blacklist', type=str, dest='fpackages', default=None, help='Blacklist packages defined in a given YAML file')
     parser.add_argument('-v', dest='verbosity', action='count', default=0, help='verbosity, max = -vvv')
-    args = parser.parse_args()
+    args = parser.parse_args(main_args)
 
-    filesystem = args.release_path.split(os.sep)[1]
     version = get_version(args.release_path)
     basepath = get_basepath(args.release_path)
 
@@ -245,4 +245,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
