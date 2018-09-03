@@ -26,6 +26,9 @@ def setup_env_variables():
 
     config['PLATFORM'] = subprocess.check_output(command.split()).rstrip()
 
+    if 'gcc73' in config['PLATFORM']:
+        config['PLATFORM'] = config['PLATFORM'].replace('gcc73', 'gcc7')
+
     command = 'python {}/hsf_get_platform.py --get os'.format(TOOLSPATH)
     config['OS'] = subprocess.check_output(command.split()).rstrip()
 
