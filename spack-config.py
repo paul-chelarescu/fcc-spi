@@ -16,6 +16,7 @@ def setup_env_variables():
     if 'FCC_VERSION' not in config:
         config['FCC_VERSION'] = 'stable'
     config['CURRENT_DIR'] = os.path.dirname(os.path.realpath(__file__))
+    config['WORKSPACE'] = os.getcwd()
 
     TOOLSPATH = '/cvmfs/fcc.cern.ch/sw/0.8.3/tools/'
     command = 'python {}/hsf_get_platform.py --compiler {} --buildtype '\
