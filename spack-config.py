@@ -77,7 +77,7 @@ def configure_compiler():
     copyfile(src, dst)
 
 
-def create_packages():
+def configure_lcg_externals():
     if config['LCG_VERSION'].startswith('LCG_'):
         config['LCG_externals'] = '/cvmfs/sft.cern.ch/lcg/releases/{}/'\
                 'LCG_*_{}.txt'.format(config['LCG_VERSION'],
@@ -94,11 +94,90 @@ def create_packages():
     print('Modification date: {}'.format(modification_date.stdout.read()\
             .rstrip()))
 
+
+def replace_lcg_package_names():
+    lcg_packages_file = '{}/{}_packages.yaml'.format(config['WORKSPACE'],
+            config['LCG_VERSION'])
+
+    with open(lcg_packages_file) as f:
+        lcg_packages_text = f.read()
+        lcg_packages_text = lcg_packages_text.replace('tbb:', 'intel-tbb:')
+        lcg_packages_text = lcg_packages_text.replace('tbb@', 'intel-tbb@')
+        lcg_packages_text = lcg_packages_text.replace('xercesc:', 'xerces-c:')
+        lcg_packages_text = lcg_packages_text.replace('xercesc@', 'xerces-c@')
+        lcg_packages_text = lcg_packages_text.replace('java:', 'jdk:')
+        lcg_packages_text = lcg_packages_text.replace('java@', 'jdk@')
+
+    with open(lcg_packages_file, "w") as f:
+        f.write(lcg_packages_text)
+
+    return lcg_packages_text
+
+
+def read_default_packages():
+    packages_file = '{}/packages.yaml'.format(config['WORKSPACE'])
+
+    with open(packages_file) as f:
+        packages_text = f.readlines()
+
+    os.remove(packages_file)
+    return packages_text
+
+
+def read_fcc_packages():
+    fcc_version_file = '{}/config/packages-{}.yaml'.format(
+            config['CURRENT_DIR'], config['FCC_VERSION'])
+
+    with open(fcc_version_file) as f:
+        fcc_version_text = f.readlines()
+    return fcc_version_text
+
+
+def create_lcg_packages():
     args = ['--blacklist', '{}/config/packages-{}.yaml'\
             .format(config['CURRENT_DIR'], config['FCC_VERSION']),
             config['LCG_externals']]
     create_lcg_package_specs.main(args)
 
+    src = '{}/config/packages-default.yaml'.format(config['CURRENT_DIR'])
+    dst = '{}/packages.yaml'.format(config['WORKSPACE'])
+    copyfile(src, dst)
+
+
+def remove_first_line(packages):
+    return '\n'.join(packages.split('\n')[1:])
+
+
+def get_gitpython_package():
+    return """  py-gitpython:
+    buildable: false
+    paths: {py-gitpython@2.1.8-0%gcc@6.2.0 arch=x86_64-scientificcernslc6: \
+/cvmfs/fcc.cern.ch/sw/0.8.3/gitpython/lib/python2.7/site-packages}
+"""
+
+
+def write_spack_packages(packages):
+    spack_packages_file = '{}/linux/packages.yaml'.format(
+            config['SPACK_CONFIG'])
+
+    with open(spack_packages_file, "w") as f:
+        for line in packages:
+            f.write(line)
+
+
+def create_packages():
+    configure_lcg_externals()
+    create_lcg_packages()
+
+    packages_text = read_default_packages()
+    lcg_packages = replace_lcg_package_names()
+    packages_text.extend(remove_first_line(lcg_packages))
+    packages_text.extend(read_fcc_packages())
+
+    if 'gcc62' in config['COMPILER']:
+        packages_text.extend(get_gitpython_package())
+
+    write_spack_packages(packages_text)
 
 if __name__ == "__main__":
     clone_spack_dependencies()
