@@ -71,13 +71,13 @@ def source_spack():
     return
 
 
-def configure_compiler(packages_text):
+def configure_compiler():
     src = '{}/config/compiler-{}-{}.yaml'.format(config['CURRENT_DIR'],\
             config['OS'], config['COMPILER'])
     dst = '{}/linux/compilers.yaml'.format(config['SPACK_CONFIG'])
     copyfile(src, dst)
 
-    packages = yaml.load(''.join(packages_text))
+    packages = yaml.load(read_spack_packages())
     tbb_lib = packages['packages']['intel-tbb']['paths'].values()[0] + '/lib'
     root_lib = packages['packages']['root']['paths'].values()[0] + '/lib'
     extra_libs = tbb_lib + ":" + root_lib
@@ -178,6 +178,14 @@ def write_spack_packages(packages):
         for line in packages:
             f.write(line)
 
+def read_spack_packages():
+    spack_packages_file = '{}/linux/packages.yaml'.format(
+            config['SPACK_CONFIG'])
+
+    with open(spack_packages_file) as f:
+        packages_text = f.read()
+
+    return packages_text
 
 def create_packages():
     configure_lcg_externals()
@@ -192,9 +200,8 @@ def create_packages():
         packages_text.extend(get_gitpython_package())
 
     write_spack_packages(packages_text)
-    return packages_text
 
 if __name__ == "__main__":
     clone_spack_dependencies()
-    packages = create_packages()
-    configure_compiler(packages)
+    create_packages()
+    configure_compiler()
