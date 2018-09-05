@@ -200,8 +200,3 @@ def create_packages():
         packages_text.extend(get_gitpython_package())
 
     write_spack_packages(packages_text)
-
-if __name__ == "__main__":
-    clone_spack_dependencies()
-    create_packages()
-    configure_compiler()
