@@ -49,18 +49,18 @@ def setup_env_variables():
 
 config = setup_env_variables()
 
-def clone_repo(clone_dir, pkg_name):
+def clone_repo(clone_dir, pkg_name, args):
     print("Cloning {} repository...".format(pkg_name))
     if not os.path.isdir(clone_dir):
-        subprocess.check_output('git clone https://github.com/{}.git {}'\
-                .format(pkg_name, clone_dir).split())
+        subprocess.check_output('git clone https://github.com/{}.git {} {}'\
+                .format(pkg_name, args, clone_dir).split())
     print("Done.")
 
 
 def clone_spack_dependencies():
-    clone_repo(config['SPACKDIR'], 'LLNL/spack')
-    clone_repo(config['HEP_REPO'], 'HEP-SF/hep-spack')
-    clone_repo(config['FCC_REPO'], 'JavierCVilla/fcc-spack')
+    clone_repo(config['SPACKDIR'], 'LLNL/spack', '')
+    clone_repo(config['HEP_REPO'], 'HEP-SF/hep-spack', '')
+    clone_repo(config['FCC_REPO'], 'JavierCVilla/fcc-spack', '')
     
 
 def source_compiler():
