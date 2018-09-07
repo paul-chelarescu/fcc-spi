@@ -71,11 +71,15 @@ def source_spack():
     return
 
 
-def configure_compiler():
+def copy_compiler_config():
     src = '{}/config/compiler-{}-{}.yaml'.format(config['CURRENT_DIR'],\
             config['OS'], config['COMPILER'])
     dst = '{}/linux/compilers.yaml'.format(config['SPACK_CONFIG'])
     copyfile(src, dst)
+
+
+def configure_compiler():
+    copy_compiler_config()
 
     packages = yaml.load(read_spack_packages())
     tbb_lib = packages['packages']['intel-tbb']['paths'].values()[0] + '/lib'
