@@ -6,17 +6,19 @@ import subprocess
 from shutil import copyfile
 import create_lcg_package_specs
 
-def parse_env_variables():
-    with open('spack-config.yaml', 'r') as cfile:
+def parse_env_variables(path):
+    with open(os.path.join(path,'spack-config.yaml'), 'r') as cfile:
         return yaml.load(cfile)
 
 
 def setup_env_variables():
-    config = parse_env_variables()
+    config = {}
     if 'FCC_VERSION' not in config:
         config['FCC_VERSION'] = 'stable'
     config['CURRENT_DIR'] = os.path.dirname(os.path.realpath(__file__))
     config['WORKSPACE'] = os.getcwd()
+    current_location = os.path.join(config['WORKSPACE'], config['CURRENT_DIR'])
+    config.update(parse_env_variables(current_location))
 
     TOOLSPATH = '/cvmfs/fcc.cern.ch/sw/0.8.3/tools/'
     command = 'python {}/hsf_get_platform.py --compiler {} --buildtype '\
@@ -39,7 +41,7 @@ def setup_env_variables():
 
     config['SPACKDIR'] = config['WORKSPACE'] + '/spack'
     config['SPACK_HOME'] = config['WORKSPACE']
-    config['HOME'] = config['SPACK_HOME'] #!!!!!!!
+    config['HOME'] = config['SPACK_HOME']
 
     config['SPACK_CONFIG'] = config['HOME'] + "/.spack"
     config['HEP_REPO'] = config['SPACKDIR'] + '/var/spack/repos/hep-spack'
@@ -59,8 +61,12 @@ def clone_repo(clone_dir, pkg_name, args):
 
 def clone_spack_dependencies():
     clone_repo(config['SPACKDIR'], 'LLNL/spack', '')
+
     clone_repo(config['HEP_REPO'], 'HEP-SF/hep-spack', '')
+    subprocess.check_output(('spack repo add ' + config['HEP_REPO']).split())
+
     clone_repo(config['FCC_REPO'], 'JavierCVilla/fcc-spack', '')
+    subprocess.check_output(('spack repo add ' + config['FCC_REPO']).split())
     
 
 def source_compiler():
@@ -71,15 +77,15 @@ def source_spack():
     return
 
 
-def copy_compiler_config():
+def copy_compiler_config(dst):
     src = '{}/config/compiler-{}-{}.yaml'.format(config['CURRENT_DIR'],\
             config['OS'], config['COMPILER'])
-    dst = '{}/linux/compilers.yaml'.format(config['SPACK_CONFIG'])
     copyfile(src, dst)
 
 
 def configure_compiler():
-    copy_compiler_config()
+    dst = '{}/linux/compilers.yaml'.format(config['SPACK_CONFIG'])
+    copy_compiler_config(dst)
 
     packages = yaml.load(read_spack_packages())
     tbb_lib = packages['packages']['intel-tbb']['paths'].values()[0] + '/lib'
@@ -178,7 +184,7 @@ def write_spack_packages(packages):
     spack_packages_file = '{}/linux/packages.yaml'.format(
             config['SPACK_CONFIG'])
 
-    with open(spack_packages_file, "w") as f:
+    with open(spack_packages_file, "w+") as f:
         for line in packages:
             f.write(line)
 
