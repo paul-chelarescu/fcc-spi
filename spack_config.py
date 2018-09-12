@@ -63,10 +63,10 @@ def clone_spack_dependencies():
     clone_repo(config['SPACKDIR'], 'LLNL/spack', '')
 
     clone_repo(config['HEP_REPO'], 'HEP-SF/hep-spack', '')
-    subprocess.check_output(('spack repo add ' + config['HEP_REPO']).split())
+    subprocess.Popen(('spack repo add ' + config['HEP_REPO']).split())
 
     clone_repo(config['FCC_REPO'], 'JavierCVilla/fcc-spack', '')
-    subprocess.check_output(('spack repo add ' + config['FCC_REPO']).split())
+    subprocess.Popen(('spack repo add ' + config['FCC_REPO']).split())
     
 
 def source_compiler():
